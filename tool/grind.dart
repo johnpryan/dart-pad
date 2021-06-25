@@ -40,17 +40,6 @@ updateThirdParty() {
 @Task()
 testCli() async => await TestRunner().testAsync(platformSelector: 'vm');
 
-// This task require a frame buffer to run.
-@Task()
-testWeb() async {
-  await TestRunner().testAsync(platformSelector: 'chrome');
-  log('Running route.dart tests...');
-  run('dart', arguments: ['pub', 'get'], workingDirectory: _routeDir.path);
-  run('dart',
-      arguments: ['pub', 'run', 'test:test', '--platform=chrome'],
-      workingDirectory: _routeDir.path);
-}
-
 @Task('Serve locally on port 8000')
 @Depends(build)
 serve() async {
@@ -228,7 +217,7 @@ coverage() {
 }
 
 @DefaultTask()
-@Depends(testCli, testWeb, coverage, build)
+@Depends(testCli, coverage, build)
 void buildbot() {}
 
 @Task('Prepare the app for deployment')
