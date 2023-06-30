@@ -116,7 +116,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     super.initState();
 
     final services = DartservicesApi(http.Client(),
-        rootUrl: 'https://stable.api.dartpad.dev/');
+        rootUrl: 'https://dart-service-stable-bf56vp4mjq-uc.a.run.app/');
 
     appModel = AppModel();
     appServices = AppServices(appModel, services);
