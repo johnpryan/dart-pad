@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:math' as math;
 import 'dart:ui_web' as ui_web;
 
 import 'package:dartpad_shared/services.dart' as services;
 import 'package:flutter/material.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:web/web.dart' as web;
 
 import '../model.dart';
@@ -18,6 +20,8 @@ const String _viewType = 'dartpad-editor';
 
 bool _viewFactoryInitialized = false;
 CodeMirror? codeMirrorInstance;
+
+const String _geminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
 
 final Key _elementViewKey = UniqueKey();
 
@@ -87,6 +91,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   StreamSubscription<void>? listener;
   CodeMirror? codeMirror;
   CompletionType completionType = CompletionType.auto;
+  late final GenerativeModel _gemini;
 
   @override
   void showCompletions() {
@@ -120,10 +125,87 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   @override
+  Future<void> showGeminiCompletion() async {
+    final geminiCompletionCode = _getGeminiCompletionInput();
+    final prompt = [
+      Content.text(
+          '''Autocomplete the following Dart function. Only show the autocompleted code. Place the cursor position after the generated code using the substring "<CURSOR".
+input: void main() {<CURSOR>
+output: 
+  print('Hello, World!');        
+}<CURSOR>
+input: $geminiCompletionCode
+'''),
+    ];
+    final response = await _gemini.generateContent(prompt);
+    final text = response.text;
+    // Replace <CURSOR> with the new text.
+
+    if (text != null) {
+      var newCode = geminiCompletionCode.replaceFirst('<CURSOR>', text);
+      final newCursorPos = _findLineAndColumn(newCode, '<CURSOR>');
+      if (newCursorPos != null) {
+        // Clear the <CURSOR> substring
+        newCode = newCode.replaceAll('<CURSOR>', '');
+      } else {
+        print('No <CURSOR> substring in output.');
+      }
+
+      codeMirror?.getDoc().setValue(newCode);
+      if (newCursorPos != null) {
+        final (line, col) = newCursorPos;
+        print('setting cursor position to line $line col $col');
+        codeMirror?.setCursor(Position(line: line, ch: col));
+      }
+    } else {
+      throw ('Null Gemini text response.');
+    }
+  }
+
+  String _getGeminiCompletionInput() {
+    final string = codeMirror?.getDoc().getValue();
+    if (string == null) {
+      throw ('Null Codemirror value.');
+    }
+    final cursorLocation = codeMirror?.getCursor();
+    if (cursorLocation == null) {
+      throw ('Null cursor location.');
+    }
+    const splitter = LineSplitter();
+    final lines = splitter.convert(string);
+    final lineStr = lines[cursorLocation.line];
+    final newLineStr = '${lineStr.substring(0, cursorLocation.ch)}'
+        '<CURSOR>'
+        '${lineStr.substring(cursorLocation.ch)}';
+    lines[cursorLocation.line] = newLineStr;
+    return lines.join('\n');
+  }
+
+  (int, int)? _findLineAndColumn(String text, String substring) {
+    final RegExp pattern = RegExp(substring);
+
+    final Match? match = pattern.firstMatch(text);
+    if (match != null) {
+      final int start = match.start;
+
+      // Calculate line number
+      final int lineNumber = text.substring(0, start).split('\n').length;
+
+      // Calculate column
+      final int columnNumber = start - text.substring(0, start).lastIndexOf('\n');
+
+      return (lineNumber + 1, columnNumber + 1); // Lines and columns start at 1
+    } else {
+      return null;
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
 
     widget.appModel.appReady.addListener(_updateEditableStatus);
+    _gemini = GenerativeModel(model: 'gemini-pro', apiKey: _geminiApiKey);
   }
 
   void _platformViewCreated(int id, {required bool darkMode}) {

@@ -458,6 +458,9 @@ class _DartPadMainPageState extends State<DartPadMainPage>
             keys.quickFixKeyActivator: () {
               appServices.editorService?.showQuickFixes();
             },
+            keys.geminiCompletionKeyActivator: () {
+              appServices.editorService?.showGeminiCompletion();
+            },
           },
           child: Focus(
             autofocus: true,

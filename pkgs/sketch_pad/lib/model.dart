@@ -33,6 +33,7 @@ abstract class EditorService {
   void showCompletions();
   void showQuickFixes();
   void jumpTo(AnalysisIssue issue);
+  void showGeminiCompletion();
 }
 
 class AppModel {

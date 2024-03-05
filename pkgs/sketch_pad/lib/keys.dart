@@ -37,6 +37,12 @@ final ShortcutActivator quickFixKeyActivator = SingleActivator(
   meta: _mac,
   control: _nonMac,
 );
+final ShortcutActivator geminiCompletionKeyActivator = SingleActivator(
+  LogicalKeyboardKey.period,
+  meta: _mac,
+  control: _nonMac,
+  alt: true,
+);
 
 // map of key activator names
 
@@ -46,6 +52,7 @@ final List<(String, ShortcutActivator)> keyBindings = [
   ('Find next', findNextKeyActivator),
   ('Quick fixes', quickFixKeyActivator),
   ('Reload', reloadKeyActivator),
+  ('Gemini code completion', geminiCompletionKeyActivator),
 ];
 
 extension SingleActivatorExtension on SingleActivator {
