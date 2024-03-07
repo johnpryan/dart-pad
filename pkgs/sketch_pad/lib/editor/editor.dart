@@ -126,35 +126,27 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
   @override
   Future<void> showGeminiCompletion() async {
-    final geminiCompletionCode = _getGeminiCompletionInput();
+    final userCode = _getUserCodeForGemini();
     final prompt = [
-      Content.text(
-          '''Autocomplete the following Dart function. Only show the autocompleted code. Place the cursor position after the generated code using the substring "<CURSOR".
-input: void main() {<CURSOR>
-output: 
-  print('Hello, World!');        
-}<CURSOR>
-input: $geminiCompletionCode
-'''),
+      Content.text(_getGeminiPrompt(userCode)),
     ];
     final response = await _gemini.generateContent(prompt);
     final text = response.text;
-    // Replace <CURSOR> with the new text.
+    print('response:');
+    print(response.text);
 
+    // Replace <CURSOR> with the new text.
     if (text != null) {
-      var newCode = geminiCompletionCode.replaceFirst('<CURSOR>', text);
+      var newCode = userCode.replaceFirst('<CURSOR>', text);
       final newCursorPos = _findLineAndColumn(newCode, '<CURSOR>');
       if (newCursorPos != null) {
         // Clear the <CURSOR> substring
         newCode = newCode.replaceAll('<CURSOR>', '');
-      } else {
-        print('No <CURSOR> substring in output.');
       }
 
       codeMirror?.getDoc().setValue(newCode);
       if (newCursorPos != null) {
         final (line, col) = newCursorPos;
-        print('setting cursor position to line $line col $col');
         codeMirror?.setCursor(Position(line: line, ch: col));
       }
     } else {
@@ -162,7 +154,17 @@ input: $geminiCompletionCode
     }
   }
 
-  String _getGeminiCompletionInput() {
+  String _getGeminiPrompt(String userCode) {
+    return '''Autocomplete the following Dart function. Only show the autocompleted code. Place the cursor position after the generated code using the substring "<CURSOR".
+input: void main() {<CURSOR>
+output: 
+  print('Hello, World!');        
+}<CURSOR>
+input: $userCode
+''';
+  }
+
+  String _getUserCodeForGemini() {
     final string = codeMirror?.getDoc().getValue();
     if (string == null) {
       throw ('Null Codemirror value.');
