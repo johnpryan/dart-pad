@@ -37,7 +37,8 @@ extension type CodeMirror._(JSObject _) implements JSObject {
   external JSAny getOption(String option);
   external void setOption(String option, JSAny value);
   external Doc getDoc();
-  external Position getCursor();
+  external Position getCursor(bool startOfSelection);
+  external String getSelection();
   external void setCursor(Position position);
   external JSAny? getHelper(Position pos, String name);
 

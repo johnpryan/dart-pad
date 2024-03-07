@@ -458,8 +458,11 @@ class _DartPadMainPageState extends State<DartPadMainPage>
             keys.quickFixKeyActivator: () {
               appServices.editorService?.showQuickFixes();
             },
-            keys.geminiCompletionKeyActivator: () {
-              appServices.editorService?.showGeminiCompletion();
+            keys.geminiCompletionKeyActivator: () async {
+              // appServices.
+              appServices.geminiRequestStatus.value = true;
+              await appServices.editorService?.showGeminiCompletion();
+              appServices.geminiRequestStatus.value = false;
             },
           },
           child: Focus(
@@ -621,7 +624,33 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         actions: [
           // Hide the Install SDK button when the screen width is too small.
-          if (constraints.maxWidth > smallScreenWidth)
+          if (constraints.maxWidth > smallScreenWidth) ...[
+            ValueListenableBuilder(
+                valueListenable: appServices.geminiRequestStatus,
+                builder: (context, value, _) {
+                  print('request status = $value');
+                  return TextButton(
+                    onPressed: value == false
+                        ? () async {
+                            appServices.geminiRequestStatus.value = true;
+                            await appServices.editorService
+                                ?.showGeminiCompletion();
+                            appServices.geminiRequestStatus.value = false;
+                          }
+                        : null,
+                    child: Row(
+                      children: [
+                        const Text('Gemini'),
+                        const SizedBox(width: denseSpacing),
+                        value == false
+                            ? const Logo(width: 18, type: 'gemini')
+                            : const SizedBox.square(
+                                dimension: 18,
+                                child: CircularProgressIndicator()),
+                      ],
+                    ),
+                  );
+                }),
             TextButton(
               onPressed: () {
                 url_launcher.launchUrl(
@@ -636,6 +665,7 @@ class DartPadAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ],
               ),
             ),
+          ],
           const SizedBox(width: denseSpacing),
           _BrightnessButton(
             handleBrightnessChange: widget.handleBrightnessChanged,

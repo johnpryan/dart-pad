@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:math' as math;
 import 'dart:ui_web' as ui_web;
@@ -135,7 +134,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
   @override
   int get cursorOffset {
-    final pos = codeMirror?.getCursor();
+    final pos = codeMirror?.getCursor(true);
     if (pos == null) return 0;
 
     return codeMirror?.getDoc().indexFromPos(pos) ?? 0;
@@ -153,11 +152,30 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
       Content.text(_getGeminiPrompt(userCode)),
     ];
     final response = await _gemini.generateContent(prompt);
-    final text = response.text;
+    var text = response.text;
 
-    // Replace <CURSOR> with the new text.
+    // print('Gemini response:');
+    // print(text);
+
+    // Clean up the output.
     if (text != null) {
-      var newCode = userCode.replaceFirst('<CURSOR>', text);
+      // Remove "output:" if the response starts with it
+      if (text.startsWith('output: ')) {
+        text = text.replaceFirst('output: ', '');
+      }
+
+      final selection = codeMirror?.getSelection();
+      String newCode;
+      // Change the selection or <CURSOR> to the autocompleted text.
+      if (selection != null && selection.isNotEmpty) {
+        // Replace the selected code with the new text
+        newCode = userCode.replaceFirst(selection, text);
+      } else {
+        // Replace <CURSOR> with the new text.
+        newCode = userCode.replaceFirst('<CURSOR>', text);
+      }
+
+      // If there's still a <CURSOR>, place the cursor there.
       var newCursorIndex = _findIndexOfCursor(newCode, '<CURSOR>');
       if (newCursorIndex != null) {
         // Clear the <CURSOR> substring
@@ -180,7 +198,7 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   String _getGeminiPrompt(String userCode) {
-    return '''Autocomplete the following Dart function. Only show the autocompleted code. Return complete code blocks. Place the cursor position after the newly generated code using the substring "<CURSOR>". Do NOT print "output: " at the beginning.
+    return '''Autocomplete the following Dart function. Only show the autocompleted code. Return complete code blocks. Place the cursor position after the newly generated code using the substring "<CURSOR>". Do NOT print "output: " at the beginning. If there are two <CURSOR> markers, that means the text is selected from the first <CURSOR> to the second <CURSOR>.
 input: void main() {
   <CURSOR>
 }
@@ -200,13 +218,34 @@ input: $userCode
     if (string == null) {
       throw ('Null Codemirror value.');
     }
-    final cursorLocation = codeMirror?.getCursor();
+    final selection = codeMirror?.getSelection();
+    final cursorLocation = codeMirror?.getCursor(true);
     if (cursorLocation == null) {
       throw ('Null cursor location.');
     }
     final cursorIndex = codeMirror?.getDoc().indexFromPos(cursorLocation);
     if (cursorIndex == null) {
       throw ('Null cursor index.');
+    }
+    // If there is a selection, place two <CURSOR> tokens.
+    if (selection != null && selection.isNotEmpty) {
+      final selectionStartPos = codeMirror?.getCursor(true);
+      final selectionEndPos = codeMirror?.getCursor(false);
+      if (selectionStartPos == null || selectionEndPos == null) {
+        throw ('Null cursor in selection.');
+      }
+      final selectionStartIndex =
+          codeMirror?.getDoc().indexFromPos(selectionStartPos);
+      final selectionEndIndex =
+          codeMirror?.getDoc().indexFromPos(selectionEndPos);
+      if (selectionStartIndex == null || selectionEndIndex == null) {
+        throw ('Null selection indices');
+      }
+      return '${string.substring(0, selectionStartIndex)}'
+          '<CURSOR>'
+          '${string.substring(selectionStartIndex, selectionEndIndex)}'
+          '<CURSOR>'
+          '${string.substring(selectionEndIndex)}';
     }
     return '${string.substring(0, cursorIndex)}'
         '<CURSOR>'
@@ -389,7 +428,7 @@ input: $userCode
     final editor = codeMirror!;
     final doc = editor.getDoc();
     final source = doc.getValue();
-    final sourceOffset = doc.indexFromPos(editor.getCursor()) ?? 0;
+    final sourceOffset = doc.indexFromPos(editor.getCursor(true)) ?? 0;
 
     if (operation == CompletionType.quickfix) {
       final response = await appServices.services

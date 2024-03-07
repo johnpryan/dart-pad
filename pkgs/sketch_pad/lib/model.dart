@@ -35,7 +35,7 @@ abstract class EditorService {
   void jumpTo(AnalysisIssue issue);
   int get cursorOffset;
   void focus();
-  void showGeminiCompletion();
+  Future<void> showGeminiCompletion();
 }
 
 class AppModel {
@@ -140,6 +140,8 @@ class AppServices {
 
   ExecutionService? _executionService;
   EditorService? _editorService;
+
+  ValueNotifier<bool> geminiRequestStatus = ValueNotifier(false);
 
   StreamSubscription<String>? stdoutSub;
 
