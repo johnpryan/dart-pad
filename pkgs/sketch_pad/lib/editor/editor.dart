@@ -198,17 +198,26 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   String _getGeminiPrompt(String userCode) {
-    return '''Autocomplete the following Dart function. Only show the autocompleted code. Return complete code blocks. Place the cursor position after the newly generated code using the substring "<CURSOR>". Do NOT print "output: " at the beginning. If there are two <CURSOR> markers, that means the text is selected from the first <CURSOR> to the second <CURSOR>.
+    return '''Autocomplete the following Dart function. 
+Autocomplete should follow these rules:
+- Only show the autocompleted code.
+- Return complete code blocks.
+- Place the cursor position after the newly generated code using the substring "<CURSOR>".
+- Do NOT print "output: " at the beginning.
+- If there are two <CURSOR> markers, that means the text is selected from the first <CURSOR> to the second <CURSOR>.
+
 input: void main() {
   <CURSOR>
 }
 output: print('Hello, World!');<CURSOR>
+
 input: // A Square class
 output: 
 class Square {
   final int size;
   Square(this.size);
 }<CURSOR>
+
 input: $userCode
 ''';
   }
