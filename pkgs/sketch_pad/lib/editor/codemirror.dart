@@ -87,10 +87,11 @@ extension type Doc._(JSObject _) implements JSObject {
   external JSArray<TextMarker> getAllMarks();
   external TextMarker markText(
       Position from, Position to, MarkTextOptions options);
-  external int? indexFromPos(Position pos);
   external void replaceRange(String replacement, Position from,
       [Position? to, String? origin]);
   external Position posFromIndex(int index);
+  external int? indexFromPos(Position pos);
+
 }
 
 @anonymous

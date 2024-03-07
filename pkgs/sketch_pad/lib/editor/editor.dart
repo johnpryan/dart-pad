@@ -154,22 +154,25 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
     ];
     final response = await _gemini.generateContent(prompt);
     final text = response.text;
-    print('response:');
-    print(response.text);
 
     // Replace <CURSOR> with the new text.
     if (text != null) {
       var newCode = userCode.replaceFirst('<CURSOR>', text);
-      final newCursorPos = _findLineAndColumn(newCode, '<CURSOR>');
-      if (newCursorPos != null) {
+      var newCursorIndex = _findIndexOfCursor(newCode, '<CURSOR>');
+      if (newCursorIndex != null) {
         // Clear the <CURSOR> substring
         newCode = newCode.replaceAll('<CURSOR>', '');
+      } else {
+        newCursorIndex = 0;
       }
-
+      if (newCursorIndex < newCode.length) {
+        newCursorIndex = newCode.length - 1;
+      }
       codeMirror?.getDoc().setValue(newCode);
+
+      final newCursorPos = codeMirror?.getDoc().posFromIndex(newCursorIndex);
       if (newCursorPos != null) {
-        final (line, col) = newCursorPos;
-        codeMirror?.setCursor(Position(line: line, ch: col));
+        codeMirror?.setCursor(newCursorPos);
       }
     } else {
       throw ('Null Gemini text response.');
@@ -177,10 +180,16 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   String _getGeminiPrompt(String userCode) {
-    return '''Autocomplete the following Dart function. Only show the autocompleted code. Place the cursor position after the generated code using the substring "<CURSOR".
-input: void main() {<CURSOR>
+    return '''Autocomplete the following Dart function. Only show the autocompleted code. Return complete code blocks. Place the cursor position after the newly generated code using the substring "<CURSOR>". Do NOT print "output: " at the beginning.
+input: void main() {
+  <CURSOR>
+}
+output: print('Hello, World!');<CURSOR>
+input: // A Square class
 output: 
-  print('Hello, World!');        
+class Square {
+  final int size;
+  Square(this.size);
 }<CURSOR>
 input: $userCode
 ''';
@@ -195,33 +204,23 @@ input: $userCode
     if (cursorLocation == null) {
       throw ('Null cursor location.');
     }
-    const splitter = LineSplitter();
-    final lines = splitter.convert(string);
-    final lineStr = lines[cursorLocation.line];
-    final newLineStr = '${lineStr.substring(0, cursorLocation.ch)}'
+    final cursorIndex = codeMirror?.getDoc().indexFromPos(cursorLocation);
+    if (cursorIndex == null) {
+      throw ('Null cursor index.');
+    }
+    return '${string.substring(0, cursorIndex)}'
         '<CURSOR>'
-        '${lineStr.substring(cursorLocation.ch)}';
-    lines[cursorLocation.line] = newLineStr;
-    return lines.join('\n');
+        '${string.substring(cursorIndex)}';
   }
 
-  (int, int)? _findLineAndColumn(String text, String substring) {
+  int? _findIndexOfCursor(String text, String substring) {
     final RegExp pattern = RegExp(substring);
 
     final Match? match = pattern.firstMatch(text);
     if (match != null) {
-      final int start = match.start;
-
-      // Calculate line number
-      final int lineNumber = text.substring(0, start).split('\n').length;
-
-      // Calculate column
-      final int columnNumber = start - text.substring(0, start).lastIndexOf('\n');
-
-      return (lineNumber + 1, columnNumber + 1); // Lines and columns start at 1
-    } else {
-      return null;
+      return match.start;
     }
+    return null;
   }
 
   @override
