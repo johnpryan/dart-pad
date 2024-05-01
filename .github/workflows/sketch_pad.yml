@@ -23,7 +23,7 @@ jobs:
       run:
         working-directory: pkgs/sketch_pad/
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
       - uses: subosito/flutter-action@02b923c0e1a5868734f1d56fa4083c3be4f554f3
         with:
           channel: main
