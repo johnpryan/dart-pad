@@ -44,13 +44,11 @@ class _DocsWidgetState extends State<DocsWidget> {
             overflow: TextOverflow.ellipsis,
           ),
         if (title.isNotEmpty) const SizedBox(height: denseSpacing),
-        Expanded(
-          child: Markdown(
-            data: docs.dartdoc ?? '',
-            padding: const EdgeInsets.only(left: denseSpacing),
-            onTapLink: _handleMarkdownTap,
-          ),
-        ),
+        Markdown(
+          data: docs.dartdoc ?? '',
+          padding: const EdgeInsets.only(left: denseSpacing),
+          onTapLink: _handleMarkdownTap,
+        ).expanded(),
       ],
     );
   }

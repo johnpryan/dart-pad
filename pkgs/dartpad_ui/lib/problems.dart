@@ -87,13 +87,11 @@ class ProblemWidget extends StatelessWidget {
                     darkMode: colorScheme.brightness == Brightness.dark),
               ),
               const SizedBox(width: denseSpacing),
-              Expanded(
-                child: Text(
-                  issue.message,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
+              Text(
+                issue.message,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ).expanded(),
               Text(
                 ' line ${issue.location.line}, col ${issue.location.column}',
                 maxLines: 1,
@@ -109,13 +107,11 @@ class ProblemWidget extends StatelessWidget {
               children: [
                 const SizedBox.square(dimension: smallIconSize),
                 const SizedBox(width: denseSpacing),
-                Expanded(
-                  child: Text(
-                    correction,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+                Text(
+                  correction,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ).expanded(),
               ],
             ),
           ],

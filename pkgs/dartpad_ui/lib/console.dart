@@ -46,7 +46,34 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
+    return ValueListenableBuilder(
+      valueListenable: widget.output,
+      builder: (context, value, _) => Stack(
+        children: [
+          SingleChildScrollView(
+            controller: scrollController,
+            child: SelectableText(
+              value,
+              maxLines: null,
+              style: GoogleFonts.robotoMono(
+                fontSize: theme.textTheme.bodyMedium?.fontSize,
+              ),
+            ),
+          ).sizedBox(width: double.infinity, height: double.infinity),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MiniIconButton(
+                icon: Icons.playlist_remove,
+                tooltip: 'Clear console',
+                onPressed: value.isEmpty ? null : _clearConsole,
+              ),
+            ],
+          ).padding(padding: const EdgeInsets.all(denseSpacing)),
+        ],
+      ),
+    ).container(
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
         border: widget.showDivider
@@ -57,40 +84,6 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
                 color: theme.colorScheme.surface,
               ))
             : null,
-      ),
-      padding: const EdgeInsets.all(denseSpacing),
-      child: ValueListenableBuilder(
-        valueListenable: widget.output,
-        builder: (context, value, _) => Stack(
-          children: [
-            SizedBox.expand(
-              child: SingleChildScrollView(
-                controller: scrollController,
-                child: SelectableText(
-                  value,
-                  maxLines: null,
-                  style: GoogleFonts.robotoMono(
-                    fontSize: theme.textTheme.bodyMedium?.fontSize,
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(denseSpacing),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  MiniIconButton(
-                    icon: Icons.playlist_remove,
-                    tooltip: 'Clear console',
-                    onPressed: value.isEmpty ? null : _clearConsole,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

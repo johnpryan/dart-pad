@@ -34,27 +34,25 @@ class VersionTable extends StatelessWidget {
         SelectableText(versionText),
         const Divider(),
         const SizedBox(height: denseSpacing),
-        Expanded(
-          child: VTable<PackageInfo>(
-            showToolbar: false,
-            items: packages,
-            columns: [
-              VTableColumn(
-                label: 'Package',
-                width: 250,
-                grow: 0.7,
-                transformFunction: (p) => 'package:${p.name}',
-              ),
-              VTableColumn(
-                label: 'Version',
-                width: 70,
-                grow: 0.3,
-                transformFunction: (p) => p.version,
-                styleFunction: (p) => subtleText,
-              ),
-            ],
-          ),
-        ),
+        VTable<PackageInfo>(
+          showToolbar: false,
+          items: packages,
+          columns: [
+            VTableColumn(
+              label: 'Package',
+              width: 250,
+              grow: 0.7,
+              transformFunction: (p) => 'package:${p.name}',
+            ),
+            VTableColumn(
+              label: 'Version',
+              width: 70,
+              grow: 0.3,
+              transformFunction: (p) => p.version,
+              styleFunction: (p) => subtleText,
+            ),
+          ],
+        ).expanded(),
       ],
     );
   }

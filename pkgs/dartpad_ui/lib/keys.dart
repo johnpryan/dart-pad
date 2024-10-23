@@ -79,7 +79,36 @@ extension SingleActivatorExtension on SingleActivator {
       text = 'Space';
     }
 
-    return Container(
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (shift)
+          const Icon(
+            Icons.arrow_upward,
+            size: 16,
+            color: subtleColor,
+          ),
+        if (alt)
+          Icon(
+            _mac ? Icons.keyboard_option_key : Icons.keyboard_alt,
+            size: 16,
+            color: subtleColor,
+          ),
+        if (control)
+          const Icon(
+            Icons.keyboard_control_key,
+            size: 16,
+            color: subtleColor,
+          ),
+        if (meta)
+          const Icon(
+            Icons.keyboard_command_key,
+            size: 16,
+            color: subtleColor,
+          ),
+        Text(text, style: subtleText),
+      ],
+    ).container(
       decoration: BoxDecoration(
         border: Border.fromBorderSide(
           Divider.createBorderSide(context, width: 1.0, color: subtleColor),
@@ -89,36 +118,6 @@ extension SingleActivatorExtension on SingleActivator {
       padding: const EdgeInsets.symmetric(
         vertical: 2,
         horizontal: 6,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (shift)
-            const Icon(
-              Icons.arrow_upward,
-              size: 16,
-              color: subtleColor,
-            ),
-          if (alt)
-            Icon(
-              _mac ? Icons.keyboard_option_key : Icons.keyboard_alt,
-              size: 16,
-              color: subtleColor,
-            ),
-          if (control)
-            const Icon(
-              Icons.keyboard_control_key,
-              size: 16,
-              color: subtleColor,
-            ),
-          if (meta)
-            const Icon(
-              Icons.keyboard_command_key,
-              size: 16,
-              color: subtleColor,
-            ),
-          Text(text, style: subtleText),
-        ],
       ),
     );
   }
