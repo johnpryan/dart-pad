@@ -701,7 +701,7 @@ class EditorWithButtons extends StatelessWidget {
                   ),
                 ],
               ).padding(
-                padding: EdgeInsets.symmetric(
+                padding: const EdgeInsets.symmetric(
                   vertical: denseSpacing,
                   horizontal: defaultSpacing,
                 ),
@@ -1124,8 +1124,8 @@ class ContinueInMenu extends StatelessWidget {
           MenuItemButton(
             trailingIcon: const Logo(type: 'idx'),
             onPressed: openInIdx,
-            child: Text('IDX').padding(
-              padding: EdgeInsets.fromLTRB(0, 0, 32, 0),
+            child: const Text('IDX').padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 32, 0),
             ),
           ),
         ].map((widget) => PointerInterceptor(child: widget))
@@ -1174,7 +1174,7 @@ class KeyBindingsTable extends StatelessWidget {
                     if (!first) {
                       children.add(
                         const Text(',').padding(
-                          padding: EdgeInsets.only(left: 4, right: 8),
+                          padding: const EdgeInsets.only(left: 4, right: 8),
                         ),
                       );
                     }
